@@ -1,3 +1,4 @@
+
 import pygame
 import random
 from datetime import datetime
@@ -53,7 +54,6 @@ def hex_to_rgb (hex):
 def om (name,alpha=255):
   return hex_to_rgb (openmojipalette [name]) + (alpha,)
 
-
 def create_table ():
   table = []
   for a in range (2,50):
@@ -82,6 +82,8 @@ def init (self):
   self.clock = pygame.time.Clock ()
   self.margin_x,self.margin_y = 40,15
   self.cursor_x,self.cursor_y = 0,0
+  if args.font == "None":
+    args.font = None
   self.textfont = pygame.font.Font (args.font, args.fontsize)
   self.hugefont = pygame.font.Font (args.font, int(screen_h/2))
   self.finalfont = pygame.font.Font (args.font, int(screen_h/6))
