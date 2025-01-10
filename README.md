@@ -28,3 +28,4 @@ Start from command line:
 ```
 # python multiplicare-1.py
 ```
+![Screenshot](https://github.com/hietjmo/multiplicare/blob/main/screenshot-multiplicare.png?raw=true)
