@@ -22,6 +22,7 @@ def read_args ():
   pad ("--cols", type=int, default=5)
   pad ("--font", default="fonts/Ubuntu-R.ttf")
   pad ("--fontsize", type=float, default=30)
+  pad ("--logkeys", action="store_true")
   pad ("--log", action="store_true")
   args = parser.parse_args ()
   return (args)
@@ -74,11 +75,17 @@ def read_results (self):
     self.results = json.load (open (self.filename,"r"))
   except:
     self.results = []
+  self.logfile = "logfile.json"
+  try:
+    self.logs = json.load (open (self.logfile,"r"))
+  except:
+    self.logs = []
+
 
 def init (self):
   pygame.init ()
-  self.screen = pygame.display.set_mode ((screen_w, screen_h))
   pygame.display.set_caption ("Multiplicare")
+  self.screen = pygame.display.set_mode ((screen_w, screen_h))
   self.clock = pygame.time.Clock ()
   self.margin_x,self.margin_y = 40,15
   self.cursor_x,self.cursor_y = 0,0
@@ -109,6 +116,7 @@ def init (self):
   self.answered = -1
   self.errors,self.corrects,self.hots = {},{},{}
   self.answer = ""
+  self.lastlog = []; self.logs = []
   self.countdown = 5
   read_results (self)
   pygame.time.set_timer (SLOWTICK, 5000)
@@ -209,6 +217,7 @@ def start_game (self):
   print ("Started.")
   self.answered = 0
   self.answer = ""
+  self.lastlog = [datetime.today().strftime('%Y-%m-%d %H:%M:%S')]
   self.final = None
   self.errors,self.corrects,self.hots = {},{},{}
 
@@ -231,6 +240,7 @@ def judge (self):
     secs = now - self.starttime
     secs = secs + 20 * (len(self.errors))
     self.final = secs
+    self.lastlog.append (secs)
     print (secs)
     self.state = done
     timetext = datetime.today().strftime('%Y-%m-%d %H:%M')
@@ -238,6 +248,8 @@ def judge (self):
     self.results = self.results [:18]
     self.results.append (self.latest)
     self.results.sort ()
+    self.logs = self.logs [:30]
+    self.logs.insert (0,self.lastlog)
     pygame.time.set_timer (SLOWTICK, 2000)
   self.answer = ""
 
@@ -246,6 +258,15 @@ def fasttick (self):
   secs = now - self.starttime
   secs = secs + 20 * (len(self.errors))
   self.resultline = f"time: {int(secs)} s"
+
+def logkey (self):
+  now = time.time ()
+  secs = now - self.starttime
+  i,j = divmod (self.answered, self.rows)
+  a,b,c = self.questions [i,j]
+  question = f"{a}x{b}={c}"
+  self.lastlog.append ([round(secs,2),[a,b],self.answer])
+  print (self.lastlog,log=args.logkeys)
 
 def handle_key_press (self, event):
   ctrl = event.mod & pygame.KMOD_CTRL
@@ -259,6 +280,7 @@ def handle_key_press (self, event):
   if "0" <= keyname <= "9":
     if self.state == game:
       self.answer += keyname
+      logkey (self)
       if len (self.answer) == 2:
         judge (self)
     else:
@@ -323,4 +345,6 @@ while self.running:
 
 self.results = self.results [:18]
 json.dump (self.results, open (self.filename,"w"))
+self.logs = self.logs [:30]
+json.dump (self.logs, open (self.logfile,"w"))
 
